@@ -1,4 +1,5 @@
 import os
+import json
 from typing import BinaryIO
 
 
@@ -49,14 +50,40 @@ def find_chunk_boundaries(
     return sorted(set(chunk_boundaries))
 
 
-## Usage
-with open(..., "rb") as f:
-    num_processes = 4
-    boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
+# ## Usage
+# with open(..., "rb") as f:
+#     num_processes = 4
+#     boundaries = find_chunk_boundaries(f, num_processes, b"<|endoftext|>")
 
-    # The following is a serial implementation, but you can parallelize this
-    # by sending each start/end pair to a set of processes.
-    for start, end in zip(boundaries[:-1], boundaries[1:]):
-        f.seek(start)
-        chunk = f.read(end - start).decode("utf-8", errors="ignore")
-        # Run pre-tokenization on your chunk and store the counts for each pre-token
+#     # The following is a serial implementation, but you can parallelize this
+#     # by sending each start/end pair to a set of processes.
+#     for start, end in zip(boundaries[:-1], boundaries[1:]):
+#         f.seek(start)
+#         chunk = f.read(end - start).decode("utf-8", errors="ignore")
+#         # Run pre-tokenization on your chunk and store the counts for each pre-token
+
+def string_to_bytes(s: str, return_int: bool = False) -> list[int] | list[bytes]:
+    byte_array = s.encode("utf-8")
+    return list(map(int, byte_array)) if return_int else [bytes([b]) for b in byte_array]
+
+def save_vocab_and_merges(
+    vocab: dict[int, bytes],
+    merges: list[tuple[bytes, bytes]],
+    output_dir: str | os.PathLike,
+):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    vocab_filepath = os.path.join(output_dir, "vocab.json")
+    merges_filepath = os.path.join(output_dir, "merges.txt")
+
+    # Save vocab
+    vocab_inv = {v.decode("latin1"): k for k, v in vocab.items()}
+    with open(vocab_filepath, "w") as vf:
+        json.dump(vocab_inv, vf, ensure_ascii=False, indent=2)
+
+    # Save merges
+    with open(merges_filepath, "w") as mf:
+        mf.write("#version: 0.2\n")
+        for a, b in merges:
+            mf.write(f"{a.decode('latin1')} {b.decode('latin1')}\n")
