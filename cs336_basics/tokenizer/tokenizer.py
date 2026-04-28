@@ -120,6 +120,9 @@ def train_bpe(
         processes.append(p)
         p.start()
 
+    for p in processes:
+        p.join()
+
     if verbose:
         print_color("Pre-tokenization processes completed. Aggregating results...")
 
@@ -130,8 +133,6 @@ def train_bpe(
             word_counter.update(partial_counter)
         except Empty:
             continue
-    for p in processes:
-        p.join()
 
     if verbose:
         print_color(f"Completed pre-tokenization. Vocabulary size: {len(word_counter)} unique tokens.")
