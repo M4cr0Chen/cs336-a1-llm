@@ -66,6 +66,9 @@ def string_to_bytes(s: str, return_int: bool = False) -> list[int] | list[bytes]
     byte_array = s.encode("utf-8")
     return list(map(int, byte_array)) if return_int else [bytes([b]) for b in byte_array]
 
+def utf8_bytes_to_string(byte_indices: list[bytes]) -> str:
+    return b"".join(byte_indices).decode("utf-8")
+
 def save_vocab_and_merges(
     vocab: dict[int, bytes],
     merges: list[tuple[bytes, bytes]],
@@ -87,3 +90,15 @@ def save_vocab_and_merges(
         mf.write("#version: 0.2\n")
         for a, b in merges:
             mf.write(f"{a.decode('latin1')} {b.decode('latin1')}\n")
+
+def timeit(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"[TIME] {func.__name__} took {end - start:.2f}s")
+
+        return result
+
+    return wrapper
