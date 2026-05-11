@@ -44,8 +44,8 @@ def print_color(content: str, color: str = "green"):
     print(f"[{color}]{content}[/{color}]")
 
 
-def get_ctx(use_mixed: bool, device: torch.device, verbose: bool = True):
-    if use_mixed and device.type == "cuda":
+def get_ctx(use_mixed: bool, device: str, verbose: bool = True):
+    if use_mixed and device == "cuda":
         if verbose:
             print_color("Using mixed precision on CUDA with BFloat16", "blue")
         return torch.autocast(device_type="cuda", dtype=torch.bfloat16)
